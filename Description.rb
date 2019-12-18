@@ -62,7 +62,11 @@ module Description
 
   def shared_title
     [
-      "**RoommateMatch** Shared Room in #{apartment_size} UCLA"
+      "**RoommateMatch** Shared Room in #{apartment_size} UCLA",
+      "WESTWOOD #{apartment_size} Shared Room. in  UCLA",
+      "UCLA ROOMMATE MATCH: near #{building.close_to.join(', ')}",
+      "ROOMMATE MATCH #{apartment_size} near #{building.close_to.join(', ')}",
+      "#{apartment_size} Shared apartment near #{building.close_to.join(', ')}"
     ].sample
   end
 

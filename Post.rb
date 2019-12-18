@@ -18,18 +18,24 @@ class Post < Apartment
   include Capybara::DSL
   include Description
 
+  @@posts = 0
+
   attr_reader :apartment, :credentials
 
   def initialize(apartment)
     @apartment = apartment
     @credentials = YAML.load(File.read("credentials.yml"))
+    @@posts += 1
   end
 
   def craigslist(shared: false)
     visit 'https://accounts.craigslist.org/login/home'
-    fill_in('inputEmailHandle', with: @credentials[:craigslist][:username])
-    fill_in('inputPassword', with: @credentials[:craigslist][:password])
-    find('#login').click
+    puts "posts: #{@@posts}"
+    if @@posts <= 1
+      fill_in('inputEmailHandle', with: @credentials[:craigslist][:username])
+      fill_in('inputPassword', with: @credentials[:craigslist][:password])
+      find('#login').click
+    end
     within(:css, "form.new_posting_thing") do
       click_button('go')
     end
@@ -49,7 +55,6 @@ class Post < Apartment
     find('#ui-id-3-button').click
     find('#ui-id-3-button').send_keys(:arrow_down)
     find('#ui-id-3-button').send_keys(:enter)
-    # binding.pry
     if !shared
       find('#Bedrooms-button').click
       find('#Bedrooms-button').send_keys(:arrow_down)
@@ -73,7 +78,7 @@ class Post < Apartment
     fill_in("city", with: @apartment.building.city)
     click_button('go')
     click_button('continue')
-    find("#classic").click
+    find("#classic").click if @@posts <= 1
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("file", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
@@ -95,7 +100,6 @@ class Post < Apartment
     sleep 5
     find("[data-testid='react-composer-post-button']").click
     sleep 5
-    self
   end
 
   def post_to_ucla_housing_and_roommate_search(shared: false)
@@ -128,15 +132,16 @@ class Post < Apartment
 
   def fb(shared: false)
     Capybara.ignore_hidden_elements = false
-    visit "https://www.facebook.com/"
-    fill_in("email", with: @credentials[:facebook][:username])
-    fill_in("pass", with: @credentials[:facebook][:password])
-    click_button("Log In")
+    if @@posts <= 1
+      visit "https://www.facebook.com/"
+      fill_in("email", with: @credentials[:facebook][:username])
+      fill_in("pass", with: @credentials[:facebook][:password])
+      click_button("Log In")
+    end
     post_to_ucla_off_campus_housing(shared: shared)
     post_to_ucla_housing_and_roommate_search(shared: shared)
     post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
     Capybara.ignore_hidden_elements = true
-    self
   end
 
 
@@ -148,12 +153,12 @@ class Post < Apartment
 end
 
 
-# Company.new.greystone_apartments.each do |apartment|
-#   Post.new(apartment).post_everywhere(shared: true)
-# end
-apartment = Company.new.greystone_apartments[1]
+Company.new.greystone_apartments.each do |apartment|
+  Post.new(apartment).post_everywhere(shared: true)
+end
+# apartment = Company.new.greystone_apartments[1]
 # binding.pry
-Post.new(apartment).post_everywhere(shared: true)
+# Post.new(apartment).post_everywhere(shared: true)
 
 
 # apartment = Apartment.new(complex: "Strathmore", shared: false)
