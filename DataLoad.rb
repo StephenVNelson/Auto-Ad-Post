@@ -15,7 +15,9 @@ module DataLoad
           city: building[:city],
           zip_code: building[:zip_code],
           cross_street_1: building[:cross_street_1],
-          cross_street_2: building[:cross_street_2]
+          cross_street_2: building[:cross_street_2],
+          close_to: building[:close_to],
+          distance_to_UCLA: building[:distance_to_UCLA]
           )
         building[:apartments].each do |apartment|
           new_apartment = Apartment.new(
@@ -23,7 +25,8 @@ module DataLoad
             rent: apartment[:rent],
             lease: apartment[:lease],
             available: apartment[:available],
-            sqft: apartment[:sqft]
+            sqft: apartment[:sqft],
+            bedrooms: apartment[:bedrooms]
           )
           new_building.add_apartment(new_apartment)
         end

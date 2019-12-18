@@ -2,25 +2,37 @@
 
 module Description
 
-  def descriptions
-    {
-      shared: shared_description,
-      unshared: unshared_description
-    }
+  def descriptions(unlinked: false, shared: false)
+    shared ? shared_description(unlinked: unlinked) : unshared_description
   end
 
-  def titles
-    {
-      shared: shared_title,
-      unshared: unshared_title
-    }
+  def titles(shared: false)
+    shared ? shared_title : unshared_title
   end
 
-  def shared_description
+  def apartment_size
     [
-      "**Roommate Match:** Sign up here: https://strathmore-roommate-match.herokuapp.com\n1b1b Apartment very close to UCLA. Available December/January. Single: $2240, Double: $1120, triple: $750. Comes with parking/pool/on-sight laundry.",
-      "1b1b apartment 6-8 month lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for Strathmore Arms Roommate Match. ($747/month. PM if you'd like to sign up). This is for sharing a 1 bedroom apartment with two others. We're interested in simplifying the housing search as much as possible, so we match roommates by setting up conference calls every weekend so folks can get to know one another's lifestyles/schedules/cleanliness, etc. After that, we can help all of those who are interested in the application process.",
-      "Peaceful apartment complex very close to UCLA\nGoogle Maps: https://goo.gl/maps/QpGkpdjgNG2NsDgm7\n\nThis posting is for sharing a 1b1b apartment. Each apartment comes un has a bedroom/bathroom/living room/kitchen. Comes with a parking spot.\nIf you are intersted, sign up for the apartment roommate match at https://strathmore-roommate-match.herokuapp.com/"
+      "#{bedrooms}b#{bedrooms}b",
+      "#{bedrooms} bedroom #{bedrooms} bathroom",
+      "#{sqft} sq/ft #{bedrooms}b#{bedrooms}b"
+    ].sample
+  end
+
+
+  def shared_description(unlinked: false)
+    contact = unlinked ? "To sign up, call/text at 310-694-4660" : "Sign up here: https://strathmore-roommate-match.herokuapp.com"
+    last_7_days = Date.new(available.year, available.month, -7)
+    d_available = available < last_7_days ?
+      Date::MONTHNAMES[(Date.today + 8).month] :
+      Date::MONTHNAMES[available.month]
+    ammenities = building.ammenities[0..rand(0..building.ammenities.size)]
+      .join('/')
+    shared_cost = (1...max_tenants).map {|t| "#{t} roommates: $#{rent/(t+1)}"}
+      .join(', ')
+    [
+      "**Roommate Match:** #{contact}\n#{apartment_size} apartment, very close to #{building.close_to.join(', ')}. Available in #{d_available}. Whole apartment: $#{rent}, #{shared_cost}. Comes with #{ammenities}",
+      "#{apartment_size} apartment, #{lease} lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for our roommate match. ($#{rent/max_tenants}/month. #{contact}). This is for sharing a #{bedrooms} bedroom apartment with #{max_tenants - 1} others. We will help you find roommates and apply for an apartment",
+      "Peaceful apartment complex very close to UCLA\nGoogle Maps: #{building.distance_to_UCLA}\n\nThis posting is for sharing a #{apartment_size} apartment. Comes with #{ammenities}.\nIf you are interested, sign up for the apartment roommate match. #{contact}"
     ].sample
   end
 
@@ -50,7 +62,7 @@ module Description
 
   def shared_title
     [
-      "Shared Room in Triple. 1 Bed Apt. UCLA"
+      "**RoommateMatch** Shared Room in #{apartment_size} UCLA"
     ].sample
   end
 
