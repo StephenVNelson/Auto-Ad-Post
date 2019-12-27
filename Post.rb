@@ -35,6 +35,10 @@ class Post < Apartment
       fill_in('inputEmailHandle', with: @credentials[:craigslist][:username])
       fill_in('inputPassword', with: @credentials[:craigslist][:password])
       find('#login').click
+      page.all("input[value='delete']").each do |delete|
+        first("input[value='delete']").click
+        click_link("strathmore@gmgapts.com")
+      end
     end
     within(:css, "form.new_posting_thing") do
       click_button('go')
@@ -42,12 +46,12 @@ class Post < Apartment
     choose('westside-southbay-310')
     choose('housing offered')
     shared ? find(:css, '[value="18"]').click : find(:css, '[value="1"]').click
-    # find(:css, '[value="1"]').click
     fill_in("PostingTitle", with: @apartment.titles(shared: shared))
     fill_in("GeographicArea", with: @apartment.building.city)
     fill_in("postal", with: @apartment.building.zip_code)
-    fill_in("PostingBody", with: @apartment.descriptions(shared: shared))
-    fill_in("price", with: @apartment.rent)
+    fill_in("PostingBody", with: @apartment.descriptions(unlinked: true, shared: shared))
+    rent = shared ? @apartment.rent / @apartment.max_tenants : @apartment.rent
+    fill_in("price", with: rent)
     fill_in("Sqft", with: @apartment.sqft)
     find('#ui-id-2-button').click
     4.times {find('#ui-id-2-button').send_keys(:arrow_down)}
@@ -90,6 +94,21 @@ class Post < Apartment
   def post_to_ucla_off_campus_housing(shared: false)
     visit "https://www.facebook.com/groups/1835635240040670/"
     find("html").send_keys(:escape)
+    # all("a[aria-controls='post_menu']").each do |options|
+    #
+    # end
+    # click_link("Members")
+    # within("#groupsMemberSection_self_bio") do
+    #   click_link("View")
+    # end
+    # find("a[aria-controls='post_menu']").click
+    # all("#post_menu").each_with_index do |edit,idx|
+    #   within(edit[idx]) do
+    #     all("li[role='presentation']")[-1].click
+    #     click_button("delete")
+    #   end
+    # end
+    # binding.pry
     find(".fbReactComposerMoreButton").click
     first(".fbReactComposerAttachmentSelector_MEDIA").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
@@ -97,9 +116,9 @@ class Post < Apartment
     end
     find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared))
-    sleep 5
+    sleep 6
     find("[data-testid='react-composer-post-button']").click
-    sleep 5
+    sleep 6
   end
 
   def post_to_ucla_housing_and_roommate_search(shared: false)
@@ -130,6 +149,60 @@ class Post < Apartment
     sleep 8
   end
 
+  def post_to_fb_marketplace(shared: false)
+    visit('https://www.facebook.com/marketplace/selling/')
+    find("html").send_keys(:escape)
+    if @@posts <= 1
+      postings = page.all('span', text: 'Manage')
+      postings.each_with_index do |posting, idx|
+        page.all('span', text: 'Manage')[0].click
+        page.all('span', text: 'Delete Listing')[0].click
+        click_button("Delete")
+        visit('https://www.facebook.com/marketplace/selling/')
+        find("html").send_keys(:escape)
+      end
+    end
+    page.find('button', text: "Sell Something").click
+    click_link("Homes for Sale or Rent")
+    Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
+      attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
+    end
+    first("span", text: "Select").click
+    find("span", text:"For rent").click
+    selects = page.all('span', text: 'Select')
+    page.all("span", text: "Select")[1].click
+    find('span', text: 'Apartment/Condo').click
+    within("div[data-testid='react-composer-root']") do
+      inputs = page.all('input')
+      selects = page.all('span', text: 'Select')
+      inputs[2].set(@apartment.bedrooms)
+      inputs[3].set(@apartment.bedrooms)
+      until inputs[4].value == @apartment.formatted_rent(shared: shared)
+        inputs[4].set(@apartment.adjusted_rent(shared: shared))
+      end
+      inputs[5].set("#{@apartment.building.address}, #{@apartment.building.city} #{@apartment.building.state}")
+      sleep 1
+      inputs[5].send_keys(:enter)
+      find('textarea').set(@apartment.descriptions(shared: shared))
+      inputs[7].set(@apartment.sqft)
+      inputs[8].set(@apartment.available)
+      selects[2].click
+    end
+    find('span', text: '6 months').click
+    selects[3].click
+    find('span', text: 'Laundry in building').click
+    selects[4].click
+    find('span', text: 'Parking available').click
+    selects[5].click
+    page.all('span', text: 'None')[2].click
+    selects[6].click
+    find('span', text: 'Gas heating').click
+    click_button('Next')
+    sleep 1
+    click_button("Publish")
+    sleep 8
+  end
+
   def fb(shared: false)
     Capybara.ignore_hidden_elements = false
     if @@posts <= 1
@@ -141,8 +214,11 @@ class Post < Apartment
     post_to_ucla_off_campus_housing(shared: shared)
     post_to_ucla_housing_and_roommate_search(shared: shared)
     post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
+    post_to_fb_marketplace(shared: shared)
     Capybara.ignore_hidden_elements = true
   end
+
+
 
 
   def post_everywhere(shared: false)
@@ -154,14 +230,5 @@ end
 
 
 Company.new.greystone_apartments.each do |apartment|
-  Post.new(apartment).post_everywhere(shared: true)
+  Post.new(apartment).post_everywhere(shared: true) #if apartment.building.name == "Veteran"
 end
-# apartment = Company.new.greystone_apartments[1]
-# binding.pry
-# Post.new(apartment).post_everywhere(shared: true)
-
-
-# apartment = Apartment.new(complex: "Strathmore", shared: false)
-# PostIt.new(apartment)
-#   .craigslist
-#   .fb

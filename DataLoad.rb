@@ -13,11 +13,13 @@ module DataLoad
           name: building[:name],
           ammenities: building[:ammenities],
           city: building[:city],
+          state: building[:state],
           zip_code: building[:zip_code],
           cross_street_1: building[:cross_street_1],
           cross_street_2: building[:cross_street_2],
           close_to: building[:close_to],
-          distance_to_UCLA: building[:distance_to_UCLA]
+          distance_to_UCLA: building[:distance_to_UCLA],
+          address: building[:address]
           )
         building[:apartments].each do |apartment|
           new_apartment = Apartment.new(

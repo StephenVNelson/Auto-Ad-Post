@@ -18,6 +18,15 @@ module Description
     ].sample
   end
 
+  def adjusted_rent(shared: false)
+    shared ? rent / max_tenants : rent
+  end
+
+  def formatted_rent(shared: false)
+    number_with_commas = adjusted_rent(shared: shared).to_s.reverse
+      .gsub(/(\d{3})(?=\d)/, '\\1,').reverse
+    "$#{number_with_commas}"
+  end
 
   def shared_description(unlinked: false)
     contact = unlinked ? "To sign up, call/text at 310-694-4660" : "Sign up here: https://strathmore-roommate-match.herokuapp.com"
@@ -29,10 +38,11 @@ module Description
       .join('/')
     shared_cost = (1...max_tenants).map {|t| "#{t} roommates: $#{rent/(t+1)}"}
       .join(', ')
+    distance_to_UCLA = unlinked ? "Just a 10 minute stroll to campus." : "\nGoogle Maps: #{building.distance_to_UCLA}\n\n"
     [
       "**Roommate Match:** #{contact}\n#{apartment_size} apartment, very close to #{building.close_to.join(', ')}. Available in #{d_available}. Whole apartment: $#{rent}, #{shared_cost}. Comes with #{ammenities}",
       "#{apartment_size} apartment, #{lease} lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for our roommate match. ($#{rent/max_tenants}/month. #{contact}). This is for sharing a #{bedrooms} bedroom apartment with #{max_tenants - 1} others. We will help you find roommates and apply for an apartment",
-      "Peaceful apartment complex very close to UCLA\nGoogle Maps: #{building.distance_to_UCLA}\n\nThis posting is for sharing a #{apartment_size} apartment. Comes with #{ammenities}.\nIf you are interested, sign up for the apartment roommate match. #{contact}"
+      "Serene apartment complex very close to UCLA. #{distance_to_UCLA} This posting is for sharing a #{apartment_size} apartment. Comes with #{ammenities}.\nIf you are interested, sign up for the apartment roommate match. #{contact}"
     ].sample
   end
 
