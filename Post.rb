@@ -45,7 +45,7 @@ class Post < Apartment
     end
     choose('westside-southbay-310')
     choose('housing offered')
-    shared ? find(:css, '[value="18"]').click : find(:css, '[value="1"]').click
+    shared ? find(:css, '[value="1"]').click : find(:css, '[value="18"]').click
     fill_in("PostingTitle", with: @apartment.titles(shared: shared))
     fill_in("GeographicArea", with: @apartment.building.city)
     fill_in("postal", with: @apartment.building.zip_code)
@@ -116,9 +116,14 @@ class Post < Apartment
     end
     find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared))
-    sleep 6
+    while page.has_css?("div[role='progressbar']", wait: 0) do
+      sleep 1
+    end
     find("[data-testid='react-composer-post-button']").click
-    sleep 6
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
+    end
   end
 
   def post_to_ucla_housing_and_roommate_search(shared: false)
@@ -131,9 +136,14 @@ class Post < Apartment
     end
     find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared))
-    sleep 5
+    while page.has_css?("div[role='progressbar']", wait: 0) do
+      sleep 1
+    end
     find("[data-testid='react-composer-post-button']").click
-    sleep 10
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 2"
+    end
   end
 
   def post_to_ucla_housing_rooms_apartments_sublets(shared: false)
@@ -144,9 +154,16 @@ class Post < Apartment
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    sleep 8
+    while page.has_css?("div[role='progressbar']", wait: 0) do
+      sleep 1
+      puts "progress 3"
+    end
+    sleep 2
     find("[data-testid='react-composer-post-button']").click
-    sleep 8
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 2"
+    end
   end
 
   def post_to_fb_marketplace(shared: false)
@@ -155,6 +172,7 @@ class Post < Apartment
     if @@posts <= 1
       postings = page.all('span', text: 'Manage')
       postings.each_with_index do |posting, idx|
+        binding.pry if idx > 0
         page.all('span', text: 'Manage')[0].click
         page.all('span', text: 'Delete Listing')[0].click
         click_button("Delete")
@@ -200,7 +218,7 @@ class Post < Apartment
     click_button('Next')
     sleep 1
     click_button("Publish")
-    sleep 8
+    sleep 10
   end
 
   def fb(shared: false)
@@ -219,10 +237,8 @@ class Post < Apartment
   end
 
 
-
-
   def post_everywhere(shared: false)
-    craigslist(shared: shared)
+    # craigslist(shared: shared)
     fb(shared: shared)
   end
 
