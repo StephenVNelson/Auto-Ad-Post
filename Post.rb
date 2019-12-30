@@ -170,9 +170,23 @@ class Post < Apartment
     visit('https://www.facebook.com/marketplace/selling/')
     find("html").send_keys(:escape)
     if @@posts <= 1
+      within("div[role='main']") do
+        while page.has_css?("span[role='progressbar']")
+          sleep 1
+          puts "waiting for main"
+        end
+      end
       postings = page.all('span', text: 'Manage')
+      puts "there are #{postings.count} postings"
       postings.each_with_index do |posting, idx|
-        binding.pry if idx > 0
+        puts "index:#{idx} of #{postings.count}"
+        within("div[role='main']") do
+          while page.has_css?("span[role='progressbar']")
+            sleep 1
+            puts "waiting for main"
+          end
+        end
+        # binding.pry if idx > 0
         page.all('span', text: 'Manage')[0].click
         page.all('span', text: 'Delete Listing')[0].click
         click_button("Delete")
@@ -229,9 +243,9 @@ class Post < Apartment
       fill_in("pass", with: @credentials[:facebook][:password])
       click_button("Log In")
     end
-    post_to_ucla_off_campus_housing(shared: shared)
-    post_to_ucla_housing_and_roommate_search(shared: shared)
-    post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
+    # post_to_ucla_off_campus_housing(shared: shared)
+    # post_to_ucla_housing_and_roommate_search(shared: shared)
+    # post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
     post_to_fb_marketplace(shared: shared)
     Capybara.ignore_hidden_elements = true
   end
@@ -246,5 +260,5 @@ end
 
 
 Company.new.greystone_apartments.each do |apartment|
-  Post.new(apartment).post_everywhere(shared: true) #if apartment.building.name == "Veteran"
+  Post.new(apartment).post_everywhere(shared: false) #if apartment.building.name == "Veteran"
 end
