@@ -11,7 +11,7 @@ module DataLoad
       details[:buildings].each do |building|
         new_building = Building.new(
           name: building[:name],
-          ammenities: building[:ammenities],
+          amenities: building[:amenities],
           city: building[:city],
           state: building[:state],
           zip_code: building[:zip_code],

@@ -3,13 +3,13 @@ require_relative 'Company'
 
   class Building < Company
 
-    attr_reader :name, :apartments, :ammenities, :city, :zip_code, :cross_street_1, :cross_street_2, :close_to, :distance_to_UCLA, :state, :address
+    attr_reader :name, :apartments, :amenities, :city, :zip_code, :cross_street_1, :cross_street_2, :close_to, :distance_to_UCLA, :state, :address
     attr_accessor :company
 
-    def initialize(name: "", apartments: [], ammenities: [], city: "", zip_code: "", company: nil, cross_street_1: "", cross_street_2: "", close_to: "", distance_to_UCLA: "", state: "", address: "")
+    def initialize(name: "", apartments: [], amenities: [], city: "", zip_code: "", company: nil, cross_street_1: "", cross_street_2: "", close_to: "", distance_to_UCLA: "", state: "", address: "")
       @name = name
       @apartments = apartments
-      @ammenities = ammenities
+      @amenities = amenities
       @city = city
       @state = state
       @zip_code = zip_code

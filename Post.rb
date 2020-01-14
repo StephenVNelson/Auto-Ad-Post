@@ -45,7 +45,7 @@ class Post < Apartment
     end
     choose('westside-southbay-310')
     choose('housing offered')
-    shared ? find(:css, '[value="1"]').click : find(:css, '[value="18"]').click
+    shared ? find(:css, '[value="18"]').click : find(:css, '[value="1"]').click
     fill_in("PostingTitle", with: @apartment.titles(shared: shared))
     fill_in("GeographicArea", with: @apartment.building.city)
     fill_in("postal", with: @apartment.building.zip_code)
@@ -94,30 +94,53 @@ class Post < Apartment
   def post_to_ucla_off_campus_housing(shared: false)
     visit "https://www.facebook.com/groups/1835635240040670/"
     find("html").send_keys(:escape)
-    # all("a[aria-controls='post_menu']").each do |options|
-    #
-    # end
-    # click_link("Members")
-    # within("#groupsMemberSection_self_bio") do
-    #   click_link("View")
-    # end
-    # find("a[aria-controls='post_menu']").click
-    # all("#post_menu").each_with_index do |edit,idx|
-    #   within(edit[idx]) do
-    #     all("li[role='presentation']")[-1].click
-    #     click_button("delete")
+    # if @@posts <= 1
+    #   click_link("Members")
+    #   until page.has_css?("#groupsMemberSection_self_bio") do
+    #     puts "Wait delete post options"
     #   end
+    #   has_view = false
+    #   within("#groupsMemberSection_self_bio") do
+    #     if page.has_link?('View')
+    #       has_view = true
+    #       click_link('View')
+    #     end
+    #   end
+    #   if has_view
+    #     total = all("[data-testid='post_chevron_button']").count
+    #     all("[data-testid='post_chevron_button']").each_with_index do |option,i|
+    #       # binding.pry if i >= 1
+    #       puts "chevron button #{i + 1} of #{total}"
+    #       sleep 1
+    #       # binding.pry if (i+1) == total
+    #       first("[data-testid='post_chevron_button']").click
+    #       sleep 1
+    #       click_link("Delete post")
+    #       # all("div", text: "Delete post").last.click
+    #       sleep 1
+    #       click_button("Delete")
+    #       sleep 1
+    #     end
+    #     binding.pry
+    #   end
+    #   click_link("Discussion")
     # end
-    # binding.pry
     find(".fbReactComposerMoreButton").click
     first(".fbReactComposerAttachmentSelector_MEDIA").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
+    # binding.pry
+    first("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared))
-    while page.has_css?("div[role='progressbar']", wait: 0) do
+    while page.has_css?("div[role='progressbar']", wait: 1) do
       sleep 1
+      puts "G1 Photo Load"
+    end
+    sleep 1
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
     end
     find("[data-testid='react-composer-post-button']").click
     while page.has_css?("[data-testid='react-composer-post-button']:disabled")
@@ -139,10 +162,14 @@ class Post < Apartment
     while page.has_css?("div[role='progressbar']", wait: 0) do
       sleep 1
     end
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
+    end
     find("[data-testid='react-composer-post-button']").click
     while page.has_css?("[data-testid='react-composer-post-button']:disabled")
       sleep 1
-      puts "wait 2"
+      puts "wait 1"
     end
   end
 
@@ -158,11 +185,14 @@ class Post < Apartment
       sleep 1
       puts "progress 3"
     end
-    sleep 2
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
+    end
     find("[data-testid='react-composer-post-button']").click
     while page.has_css?("[data-testid='react-composer-post-button']:disabled")
       sleep 1
-      puts "wait 2"
+      puts "wait 1"
     end
   end
 
@@ -243,16 +273,16 @@ class Post < Apartment
       fill_in("pass", with: @credentials[:facebook][:password])
       click_button("Log In")
     end
-    # post_to_ucla_off_campus_housing(shared: shared)
-    # post_to_ucla_housing_and_roommate_search(shared: shared)
-    # post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
-    post_to_fb_marketplace(shared: shared)
+    post_to_ucla_off_campus_housing(shared: shared)
+    post_to_ucla_housing_and_roommate_search(shared: shared)
+    post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
+    post_to_fb_marketplace(shared: false)
     Capybara.ignore_hidden_elements = true
   end
 
 
   def post_everywhere(shared: false)
-    # craigslist(shared: shared)
+    craigslist(shared: shared)
     fb(shared: shared)
   end
 
@@ -260,5 +290,5 @@ end
 
 
 Company.new.greystone_apartments.each do |apartment|
-  Post.new(apartment).post_everywhere(shared: false) #if apartment.building.name == "Veteran"
+  Post.new(apartment).post_everywhere(shared: false)
 end
