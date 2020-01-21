@@ -289,6 +289,12 @@ class Post < Apartment
 end
 
 
+
+# Company.new.greystone_apartments.each do |apartment|
+#   Post.new(apartment).post_everywhere(shared: false)
+# end
+
+#test descriptions
 Company.new.greystone_apartments.each do |apartment|
-  Post.new(apartment).post_everywhere(shared: false)
+ puts apartment.descriptions(shared: true, matching: true, unlinked: true)
 end

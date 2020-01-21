@@ -28,7 +28,8 @@ module DataLoad
             lease: apartment[:lease],
             available: apartment[:available],
             sqft: apartment[:sqft],
-            bedrooms: apartment[:bedrooms]
+            bedrooms: apartment[:bedrooms],
+            roommate_match: apartment[:roommate_match]
           )
           new_building.add_apartment(new_apartment)
         end
