@@ -28,7 +28,7 @@ class Post < Apartment
     @@posts += 1
   end
 
-  def craigslist(shared: false)
+  def craigslist(shared: false, matching: false)
     visit 'https://accounts.craigslist.org/login/home'
     puts "posts: #{@@posts}"
     if @@posts <= 1
@@ -49,7 +49,7 @@ class Post < Apartment
     fill_in("PostingTitle", with: @apartment.titles(shared: shared))
     fill_in("GeographicArea", with: @apartment.building.city)
     fill_in("postal", with: @apartment.building.zip_code)
-    fill_in("PostingBody", with: @apartment.descriptions(unlinked: true, shared: shared))
+    fill_in("PostingBody", with: @apartment.descriptions(unlinked: true, shared: shared, matching: matching))
     rent = shared ? @apartment.rent / @apartment.max_tenants : @apartment.rent
     fill_in("price", with: rent)
     fill_in("Sqft", with: @apartment.sqft)
@@ -91,7 +91,7 @@ class Post < Apartment
     sleep 4
   end
 
-  def post_to_ucla_off_campus_housing(shared: false)
+  def post_to_ucla_off_campus_housing(shared: false, matching: false)
     visit "https://www.facebook.com/groups/1835635240040670/"
     find("html").send_keys(:escape)
     # if @@posts <= 1
@@ -109,10 +109,8 @@ class Post < Apartment
     #   if has_view
     #     total = all("[data-testid='post_chevron_button']").count
     #     all("[data-testid='post_chevron_button']").each_with_index do |option,i|
-    #       # binding.pry if i >= 1
     #       puts "chevron button #{i + 1} of #{total}"
     #       sleep 1
-    #       # binding.pry if (i+1) == total
     #       first("[data-testid='post_chevron_button']").click
     #       sleep 1
     #       click_link("Delete post")
@@ -121,7 +119,6 @@ class Post < Apartment
     #       click_button("Delete")
     #       sleep 1
     #     end
-    #     binding.pry
     #   end
     #   click_link("Discussion")
     # end
@@ -130,9 +127,8 @@ class Post < Apartment
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    # binding.pry
     first("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
-      .set(@apartment.descriptions(shared: shared))
+      .set(@apartment.descriptions(shared: shared, matching: matching))
     while page.has_css?("div[role='progressbar']", wait: 1) do
       sleep 1
       puts "G1 Photo Load"
@@ -149,7 +145,7 @@ class Post < Apartment
     end
   end
 
-  def post_to_ucla_housing_and_roommate_search(shared: false)
+  def post_to_ucla_housing_and_roommate_search(shared: false, matching: false)
     visit "https://www.facebook.com/groups/1414484008814397/"
     find("html").send_keys(:escape)
     find(".fbReactComposerMoreButton").click
@@ -157,8 +153,10 @@ class Post < Apartment
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
-      .set(@apartment.descriptions(shared: shared))
+    find("div[data-testid='media-attachment'] > div > div > div.clearfix > div > div > div > div > div > div > div > div > div[spellcheck='true']")
+      .set(@apartment.descriptions(shared: shared, matching: matching))
+    # find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
+    #   .set(@apartment.descriptions(shared: shared, matching: matching))
     while page.has_css?("div[role='progressbar']", wait: 0) do
       sleep 1
     end
@@ -173,10 +171,10 @@ class Post < Apartment
     end
   end
 
-  def post_to_ucla_housing_rooms_apartments_sublets(shared: false)
+  def post_to_ucla_housing_rooms_apartments_sublets(shared: false, matching: false)
     visit "https://www.facebook.com/groups/415336998925847/"
     find("html").send_keys(:escape)
-    find("[name='xhpc_message_text']").set(@apartment.descriptions(unlinked: true, shared: shared))
+    find("[name='xhpc_message_text']").set(@apartment.descriptions(unlinked: true, shared: shared, matching: matching))
     find("[data-tooltip-content='Photo/Video']").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
@@ -196,7 +194,7 @@ class Post < Apartment
     end
   end
 
-  def post_to_fb_marketplace(shared: false)
+  def post_to_fb_marketplace(shared: false, matching: false)
     visit('https://www.facebook.com/marketplace/selling/')
     find("html").send_keys(:escape)
     if @@posts <= 1
@@ -216,7 +214,6 @@ class Post < Apartment
             puts "waiting for main"
           end
         end
-        # binding.pry if idx > 0
         page.all('span', text: 'Manage')[0].click
         page.all('span', text: 'Delete Listing')[0].click
         click_button("Delete")
@@ -245,7 +242,7 @@ class Post < Apartment
       inputs[5].set("#{@apartment.building.address}, #{@apartment.building.city} #{@apartment.building.state}")
       sleep 1
       inputs[5].send_keys(:enter)
-      find('textarea').set(@apartment.descriptions(shared: shared))
+      find('textarea').set(@apartment.descriptions(shared: shared, matching: matching))
       inputs[7].set(@apartment.sqft)
       inputs[8].set(@apartment.available)
       selects[2].click
@@ -265,7 +262,7 @@ class Post < Apartment
     sleep 10
   end
 
-  def fb(shared: false)
+  def fb(shared: false, matching: false)
     Capybara.ignore_hidden_elements = false
     if @@posts <= 1
       visit "https://www.facebook.com/"
@@ -273,28 +270,28 @@ class Post < Apartment
       fill_in("pass", with: @credentials[:facebook][:password])
       click_button("Log In")
     end
-    post_to_ucla_off_campus_housing(shared: shared)
-    post_to_ucla_housing_and_roommate_search(shared: shared)
-    post_to_ucla_housing_rooms_apartments_sublets(shared: shared)
+    post_to_ucla_off_campus_housing(shared: shared, matching: matching)
+    post_to_ucla_housing_and_roommate_search(shared: shared, matching: matching)
+    post_to_ucla_housing_rooms_apartments_sublets(shared: shared, matching: matching)
     post_to_fb_marketplace(shared: false)
     Capybara.ignore_hidden_elements = true
   end
 
 
-  def post_everywhere(shared: false)
-    craigslist(shared: shared)
-    fb(shared: shared)
+  def post_everywhere(shared: false, matching: false)
+    # craigslist(shared: shared, matching: true)
+    fb(shared: shared, matching: true)
   end
 
 end
 
 
 
-# Company.new.greystone_apartments.each do |apartment|
-#   Post.new(apartment).post_everywhere(shared: false)
-# end
-
-#test descriptions
 Company.new.greystone_apartments.each do |apartment|
- puts apartment.descriptions(shared: true, matching: true, unlinked: true)
+  Post.new(apartment).post_everywhere(shared: true, matching: true)
 end
+
+# test descriptions
+# Company.new.greystone_apartments.each do |apartment|
+#  puts apartment.descriptions(shared: true, matching: false, unlinked: true)
+# end

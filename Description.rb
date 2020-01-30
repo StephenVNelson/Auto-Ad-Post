@@ -69,7 +69,7 @@ module Description
     options = (group[:roommate_high] - group[:roommate_low]) + 1
     people_count = group[:people].count
     (1..options).map do |n|
-      "#{n} roomate#{n>1 ? 's' : ''} at $#{rent/(people_count + n)}/month"
+      "#{n} roommate#{n>1 ? 's' : ''} at $#{rent/(people_count + n)}/month"
     end.join(' or ')
   end
 
@@ -80,13 +80,22 @@ module Description
   end
 
   def aggregate_roommate_requests(unlinked: false)
-    intro = "ROOMMATES WANTED: I have #{roommate_match.count} groups looking for roommates in a #{apartment_size}. details below:\n"
+    if roommate_match.count > 1
+      pluralize = 's'
+      intro = "I have #{roommate_match.count} group#{pluralize} looking for roommates in a #{apartment_size}. details below:"
+    else
+      pluralize = ''
+      intro = ''
+    end
+
+    intro = "ROOMMATE#{pluralize.upcase} WANTED: #{intro}\n"
     details = roommate_match.map do |group|
       # 2 males looking for 1 roommate for a 1 bedroom 1 bathroom apartment.
       "• #{roommate_match_group(group)} looking for #{roommate_reqests(group)} #{roommate_match_dates(group)}"
     end.join("\n") + "\n\n"
     amenities_list = "Amenities include #{amenities}\n\n"
-    intro + details + amenities_list + contact(unlinked: unlinked)
+    included_intro = roommate_match.count < (max_tenants - 1) ? intro : ""
+    included_intro + details + amenities_list + contact(unlinked: unlinked)
   end
 
   def shared_description(unlinked: false, matching: false)
@@ -96,7 +105,7 @@ module Description
       [
         "**Roommate Match:** #{contact(unlinked: unlinked)}\n#{apartment_size} apartment, very close to #{building.close_to.join(', ')}. Available in #{date_available}. Whole apartment: $#{rent}, #{shared_cost}. Comes with #{amenities}",
         "#{apartment_size} apartment, #{lease} lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for our roommate match. ($#{rent/max_tenants}/month. #{contact(unlinked: unlinked)}). This is for sharing a #{bedrooms} bedroom apartment with #{max_tenants - 1} others. We will help you find roommates and apply for an apartment",
-        "Serene apartment complex very close to UCLA. #{distance_to_UCLA(unlinked: unlinked)} This posting is for sharing a #{apartment_size} apartment. Comes with #{amenities}. If you are interested, sign up for the apartment roommate match. #{contact(unlinked: unlinked)}"
+        "#{distance_to_UCLA(unlinked: unlinked)} This posting is for sharing a #{apartment_size} apartment. Comes with #{amenities}. Total rent cost is $#{rent}. If you are interested, sign up for the apartment roommate match. #{contact(unlinked: unlinked)}"
       ].sample
     end
   end
