@@ -1,9 +1,5 @@
-# require './Company.rb'
-# require_relative 'Building.rb'
-
 module DataLoad
-  APARTMENT_DATA = YAML.load(File.read("apartment_data.yaml"))
-  # puts APARTMENT_DATA
+  APARTMENT_DATA = YAML.load(File.read("apartment_data.yaml"))[:companies]
 
   def greystone_properties
     greystone = Company.new

@@ -4,6 +4,7 @@ require 'pry'
 require 'capybara'
 require 'capybara/dsl'
 require 'selenium-webdriver'
+require 'yaml'
 
 Capybara.configure do |c|
   c.run_server = false
@@ -26,6 +27,17 @@ class Post < Apartment
     @apartment = apartment
     @credentials = YAML.load(File.read("credentials.yml"))
     @@posts += 1
+  end
+
+  def self.four_days_ago?
+    data = YAML.load(File.read("apartment_data.yaml"))
+    last_updated = data[:last_update]
+    old_enough = last_updated <= Date.today - 4
+    if old_enough
+      data[:last_update] = Date.today
+      File.open("apartment_data.yaml", 'w') { |f| YAML.dump(data, f) }
+    end
+    old_enough
   end
 
   def craigslist(shared: false, matching: false)
@@ -272,14 +284,14 @@ class Post < Apartment
     end
     post_to_ucla_off_campus_housing(shared: shared, matching: matching)
     post_to_ucla_housing_and_roommate_search(shared: shared, matching: matching)
-    post_to_ucla_housing_rooms_apartments_sublets(shared: shared, matching: matching)
+    post_to_ucla_housing_rooms_apartments_sublets(shared: shared, matching: matching) if Post.four_days_ago?
     post_to_fb_marketplace(shared: false)
     Capybara.ignore_hidden_elements = true
   end
 
 
   def post_everywhere(shared: false, matching: false)
-    # craigslist(shared: shared, matching: true)
+    craigslist(shared: shared, matching: true)
     fb(shared: shared, matching: true)
   end
 
