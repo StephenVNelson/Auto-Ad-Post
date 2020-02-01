@@ -32,7 +32,7 @@ class Post < Apartment
   def self.four_days_ago?
     data = YAML.load(File.read("apartment_data.yaml"))
     last_updated = data[:last_update]
-    old_enough = last_updated <= Date.today - 4
+    old_enough = last_updated <= Date.today - 3
     if old_enough
       data[:last_update] = Date.today
       File.open("apartment_data.yaml", 'w') { |f| YAML.dump(data, f) }
@@ -291,7 +291,7 @@ class Post < Apartment
 
 
   def post_everywhere(shared: false, matching: false)
-    craigslist(shared: shared, matching: true)
+    craigslist(shared: false, matching: true)
     fb(shared: shared, matching: true)
   end
 
