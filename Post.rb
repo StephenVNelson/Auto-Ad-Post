@@ -106,34 +106,32 @@ class Post < Apartment
   def post_to_ucla_off_campus_housing(shared: false, matching: false)
     visit "https://www.facebook.com/groups/1835635240040670/"
     find("html").send_keys(:escape)
-    # if @@posts <= 1
-    #   click_link("Members")
-    #   until page.has_css?("#groupsMemberSection_self_bio") do
-    #     puts "Wait delete post options"
-    #   end
-    #   has_view = false
-    #   within("#groupsMemberSection_self_bio") do
-    #     if page.has_link?('View')
-    #       has_view = true
-    #       click_link('View')
-    #     end
-    #   end
-    #   if has_view
-    #     total = all("[data-testid='post_chevron_button']").count
-    #     all("[data-testid='post_chevron_button']").each_with_index do |option,i|
-    #       puts "chevron button #{i + 1} of #{total}"
-    #       sleep 1
-    #       first("[data-testid='post_chevron_button']").click
-    #       sleep 1
-    #       click_link("Delete post")
-    #       # all("div", text: "Delete post").last.click
-    #       sleep 1
-    #       click_button("Delete")
-    #       sleep 1
-    #     end
-    #   end
-    #   click_link("Discussion")
-    # end
+    if @@posts <= 1
+      click_link("Members")
+      until page.has_css?("#groupsMemberSection_self_bio") do
+        puts "Wait delete post options"
+      end
+      has_view = false
+      within("#groupsMemberSection_self_bio") do
+        if page.has_link?('View')
+          has_view = true
+          click_link('View')
+        end
+      end
+      if has_view
+        total = all("[data-testid='post_chevron_button']").count
+        all("[data-testid='post_chevron_button']").each_with_index do |option,i|
+          puts "chevron button #{i + 1} of #{total}"
+          first("#fb_groups_member_bio_dialog > div > div > div > div > div >div a[data-testid='post_chevron_button']").click
+          sleep 3
+          all("#post_menu > div > ul > li").last.click
+          click_button("Delete")
+          sleep 3
+        end
+        find("html").send_keys(:escape)
+      end
+      click_link("Discussion")
+    end
     find(".fbReactComposerMoreButton").click
     first(".fbReactComposerAttachmentSelector_MEDIA").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
