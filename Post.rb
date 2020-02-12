@@ -103,33 +103,11 @@ class Post < Apartment
     sleep 4
   end
 
-  def post_to_ucla_housing_and_roommate_search(shared: false, matching: false)
-    visit "https://www.facebook.com/groups/1414484008814397/"
-    find("html").send_keys(:escape)
-    find(".fbReactComposerMoreButton").click
-    first(".fbReactComposerAttachmentSelector_MEDIA").click
-    Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
-      attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
-    end
-    find("div[data-testid='media-attachment'] > div > div > div.clearfix > div > div > div > div > div > div > div > div > div[spellcheck='true']")
-      .set(@apartment.descriptions(shared: shared, matching: matching))
-    # find("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
-    #   .set(@apartment.descriptions(shared: shared, matching: matching))
-    while page.has_css?("div[role='progressbar']", wait: 0) do
-      sleep 1
-    end
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
-      sleep 1
-      puts "wait 1"
-    end
-    find("[data-testid='react-composer-post-button']").click
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
-      sleep 1
-      puts "wait 1"
-    end
-  end
+  # def post_to_ucla_housing_and_roommate_search(shared: false, matching: false)
+  #
+  # end
 
-  def delete_old_posts
+  def delete_discussion_posts
     click_link("Members")
     until page.has_css?("#groupsMemberSection_self_bio") do
       puts "Wait delete post options"
@@ -159,7 +137,7 @@ class Post < Apartment
     click_link("Discussion")
   end
 
-  def create_posting(shared: false, matching: false, group_name: '')
+  def create_discussion_post(shared: false, matching: false, group_name: '')
     find(".fbReactComposerMoreButton").click
     first(".fbReactComposerAttachmentSelector_MEDIA").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
@@ -183,13 +161,63 @@ class Post < Apartment
     end
   end
 
-  def post_to_group(shared: false, matching: false, url: '', group_name: '')
+  def delete_sales_posts
+    first("form > span > span > input").set("Stephen V. Nelson")
+    first("form > span > span > input").send_keys(:enter)
+    first("div > div > div > div > ul > li:nth-child(2) > a > div > div", text: "All Posts").click
+    total = all("[data-testid='post_chevron_button']").count
+    all("[data-testid='post_chevron_button']").each_with_index do |option,i|
+      puts "chevron button #{i + 1} of #{total}"
+      first("div > div.userContentWrapper > div > div > div > a[data-testid='post_chevron_button']").click
+      sleep 3
+      all("div > div > ul > li > a > span > span", text: "Delete").last.click
+      click_button("Delete")
+      sleep 3
+      if page.has_text?("Did you sell this item?")
+        find("body > div.uiLayer > div > div > div > div > div > div > div > span > button > span > i").click
+      end
+    end
+  end
+
+  def create_sales_post(shared: false, matching: false, group_name: '')
+    click_link("Discussion")
+    find(".fbReactComposerMoreButton").click
+    first(".fbReactComposerAttachmentSelector_MEDIA").click
+    Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
+      attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
+    end
+    find("div[data-testid='media-attachment'] > div > div > div.clearfix > div > div > div > div > div > div > div > div > div[spellcheck='true']")
+      .set(@apartment.descriptions(shared: shared, matching: matching))
+    while page.has_css?("div[role='progressbar']", wait: 0) do
+      sleep 1
+    end
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
+    end
+    find("[data-testid='react-composer-post-button']").click
+    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+      sleep 1
+      puts "wait 1"
+    end
+  end
+
+  def post_to_sales_group(shared: false, matching: false, url: '', group_name: '')
     visit url
     find("html").send_keys(:escape)
     if @@posts <= 1
-      delete_old_posts
+      delete_sales_posts
     end
-    create_posting(shared: false, matching: false, group_name: group_name)
+    create_sales_post(shared: false, matching: false, group_name: group_name)
+  end
+
+  def post_to_discussion_group(shared: false, matching: false, url: '', group_name: '')
+    visit url
+    find("html").send_keys(:escape)
+    if @@posts <= 1
+      delete_discussion_posts
+    end
+    create_discussion_post(shared: false, matching: false, group_name: group_name)
   end
 
   def post_to_fb_marketplace(shared: false, matching: false)
@@ -268,47 +296,50 @@ class Post < Apartment
       fill_in("pass", with: @credentials[:facebook][:password])
       click_button("Log In")
     end
-    post_to_group(
-      group_name: 'UCLA Off Campus Housing',
-      url: "https://www.facebook.com/groups/1835635240040670/",
-      shared: shared,
-      matching: matching
-    )
-    post_to_group(
-      group_name: 'UCLA Housing Rooms Apartments Sublets',
-      url: "https://www.facebook.com/groups/415336998925847/",
-      shared: shared,
-      matching: matching
-    ) if Post.four_days_ago?
-    post_to_group(
+    post_to_sales_group(
       group_name: 'LA Housing Sublets And Rentals',
       url: "https://www.facebook.com/groups/151027485336692/",
       shared: shared,
       matching: matching
     )
-    post_to_group(
+    post_to_sales_group(
+      group_name: 'UCLA Housing And Roommate Search',
+      url: "https://www.facebook.com/groups/1414484008814397/",
+      shared: shared,
+      matching: matching
+    )
+    post_to_discussion_group(
+      group_name: 'UCLA Off Campus Housing',
+      url: "https://www.facebook.com/groups/1835635240040670/",
+      shared: shared,
+      matching: matching
+    )
+    post_to_discussion_group(
+      group_name: 'UCLA Housing Rooms Apartments Sublets',
+      url: "https://www.facebook.com/groups/415336998925847/",
+      shared: shared,
+      matching: matching
+    ) if Post.four_days_ago?
+    post_to_discussion_group(
       group_name: 'Los Angeles Housing/Sublets/Rentals',
       url: "https://www.facebook.com/groups/614003098879459/",
       shared: shared,
       matching: matching
     )
-    post_to_group(
+    post_to_discussion_group(
       group_name: 'Los Angeles Apartments for Rent',
       url: "https://www.facebook.com/groups/695435553986189/",
       shared: shared,
       matching: matching
     ) if Post.four_days_ago?
-    # post_to_ucla_off_campus_housing(shared: shared, matching: matching)
-    post_to_ucla_housing_and_roommate_search(shared: shared, matching: matching)
-    # post_to_ucla_housing_rooms_apartments_sublets(shared: shared, matching: matching) if Post.four_days_ago?
     post_to_fb_marketplace(shared: false)
     Capybara.ignore_hidden_elements = true
   end
 
 
   def post_everywhere(shared: false, matching: false)
-    # craigslist(shared: false, matching: true)
-    fb(shared: shared, matching: true)
+    # craigslist(shared: false, matching: matching)
+    fb(shared: shared, matching: matching)
   end
 
 end
