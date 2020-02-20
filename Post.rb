@@ -161,44 +161,59 @@ class Post < Apartment
     end
   end
 
-  def delete_sales_posts
-    first("form > span > span > input").set("Stephen V. Nelson")
-    first("form > span > span > input").send_keys(:enter)
-    first("div > div > div > div > ul > li:nth-child(2) > a > div > div", text: "All Posts").click
-    total = all("[data-testid='post_chevron_button']").count
-    all("[data-testid='post_chevron_button']").each_with_index do |option,i|
-      puts "chevron button #{i + 1} of #{total}"
-      first("div > div.userContentWrapper > div > div > div > a[data-testid='post_chevron_button']").click
-      sleep 3
-      all("div > div > ul > li > a > span > span", text: "Delete").last.click
-      click_button("Delete")
-      sleep 3
-      if page.has_text?("Did you sell this item?")
-        find("body > div.uiLayer > div > div > div > div > div > div > div > span > button > span > i").click
+  def delete_sales_posts(group_name: '')
+    click_link('Your Items')
+
+    # if it doesn't have the "you don't have anything for sale" image
+    if !page.has_css?("div[role='feed'] > div > img")
+      all("div[role='feed'] > div").each do
+        within(first("div[role='feed'] > div")) do
+          click_button("More")
+        end
+        all("div > div > ul > li:nth-child(2) > a > span > span > i").last.click
+        # click_link("Delete Post")
+        # binding.pry
+        find("div > div > div > div > div > div > button", text: "Delete").click
+        while page.has_css?("div[data-testid='delete_post_confirm_dialog']") do
+          sleep 1
+          puts "#{group_name}: submitting delete"
+        end
+        # binding.pry
+        # click_button("Delete")
       end
     end
   end
 
   def create_sales_post(shared: false, matching: false, group_name: '')
+    # binding.pry
     click_link("Discussion")
-    find(".fbReactComposerMoreButton").click
-    first(".fbReactComposerAttachmentSelector_MEDIA").click
+    find("div[data-testid='react-composer-root'] > div > div > div > div > label > input").click
+    fill_in(
+      "What are you selling?",
+      with: @apartment.titles(shared: shared)
+    )
+    fill_in(
+      "Price",
+      with: @apartment.adjusted_rent(shared: shared)
+    )
+    find("div > div > div > div:nth-child(1) > div:nth-child(5) > div:nth-child(1) > div > div > div > div > div > div > div > div[data-block='true'] > div")
+      .set(@apartment.descriptions(shared: shared, matching: matching))
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    find("div[data-testid='media-attachment'] > div > div > div.clearfix > div > div > div > div > div > div > div > div > div[spellcheck='true']")
-      .set(@apartment.descriptions(shared: shared, matching: matching))
     while page.has_css?("div[role='progressbar']", wait: 0) do
+      puts "#{group_name}: Loading photos"
       sleep 1
     end
     while page.has_css?("[data-testid='react-composer-post-button']:disabled")
       sleep 1
-      puts "wait 1"
+      puts "#{group_name}: waiting for 'next button' to be enabled"
     end
-    find("[data-testid='react-composer-post-button']").click
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
+    click_button("Next")
+    click_button("Publish")
+    while page.has_css?("div > div > div > div > div > div > div > div > span > button > div > span[role='progressbar']")
       sleep 1
-      puts "wait 1"
+      puts "#{group_name}: publishing sales post"
     end
   end
 
@@ -206,7 +221,7 @@ class Post < Apartment
     visit url
     find("html").send_keys(:escape)
     if @@posts <= 1
-      delete_sales_posts
+      delete_sales_posts(group_name: group_name)
     end
     create_sales_post(shared: false, matching: false, group_name: group_name)
   end
