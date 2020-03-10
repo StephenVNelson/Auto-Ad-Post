@@ -238,9 +238,17 @@ class Post < Apartment
       within("div[role='main']") do
         wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
       end
-      page.all('span', text: 'Manage')[0].click
-      page.all('span', text: 'Delete Listing')[0].click
-      click_button("Delete")
+      within(all("section").first.sibling("div")) do
+        all("span").first.click
+      end
+      within("div.uiContextualLayerPositioner:not(.hidden_elem)") do
+        find('span > span', text: 'Delete Listing').click
+      end
+      until all("div[data-hover='tooltip']").count == 0
+        puts "Waiting For Delete"
+        click_button("Delete")
+        sleep 1
+      end
     end
     visit('https://www.facebook.com/marketplace/selling/')
     find("html").send_keys(:escape)
