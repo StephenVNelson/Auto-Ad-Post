@@ -105,9 +105,15 @@ class Post < Apartment
     sleep 4
   end
 
-  # def post_to_ucla_housing_and_roommate_search(shared: false, matching: false)
-  #
-  # end
+  def wait_for(css: '', message: '', group_name: '')
+    i = 0
+    while page.has_css?(css)
+      sleep 1
+      print "#{group_name}: #{message}: #{i}\r"
+      i += 1
+    end
+    puts ''
+  end
 
   def delete_discussion_posts
     click_link("Members")
@@ -147,9 +153,11 @@ class Post < Apartment
     end
     first("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared, matching: matching))
-    while page.has_css?("div[role='progressbar']", wait: 1) do
+    wait_for(css: "div[role='progressbar']", message: "Photo Load", group_name: group_name)
       sleep 1
-      puts "#{group_name} Photo Load"
+    wait_for(css: "button:disabled", message: 'enabling',  group_name: group_name)
+    click_button('Post')
+    wait_for(css: "button:disabled", message: 'enabling',  group_name: group_name)
     end
     sleep 1
     while page.has_css?("[data-testid='react-composer-post-button']:disabled")
@@ -176,9 +184,7 @@ class Post < Apartment
         # click_link("Delete Post")
         # binding.pry
         find("div > div > div > div > div > div > button", text: "Delete").click
-        while page.has_css?("div[data-testid='delete_post_confirm_dialog']") do
-          sleep 1
-          puts "#{group_name}: submitting delete"
+        wait_for(css: "div[data-testid='delete_post_confirm_dialog']", message: "submitting delete:", group_name: group_name)
         end
         # binding.pry
         # click_button("Delete")
@@ -203,19 +209,14 @@ class Post < Apartment
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
       attach_file("composer_photo", Dir.pwd + "/Photos/#{@apartment.building.name}/#{file}") if file.match(/^[^.]/)
     end
-    while page.has_css?("div[role='progressbar']", wait: 0) do
-      puts "#{group_name}: Loading photos"
-      sleep 1
-    end
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
-      sleep 1
-      puts "#{group_name}: waiting for 'next button' to be enabled"
-    end
+    wait_for(css: "button:disabled", message: "'next' enabled:", group_name: group_name)
     click_button("Next")
     click_button("Publish")
-    while page.has_css?("div > div > div > div > div > div > div > div > span > button > div > span[role='progressbar']")
-      sleep 1
-      puts "#{group_name}: publishing sales post"
+    wait_for(
+      css: "div > div > div > div > div > div > div > div > span > button > div > span[role='progressbar']", 
+      message: "publishing.", 
+      group_name: group_name
+    )
     end
   end
 
@@ -242,20 +243,14 @@ class Post < Apartment
     find("html").send_keys(:escape)
     if @@posts <= 1
       within("div[role='main']") do
-        while page.has_css?("span[role='progressbar']")
-          sleep 1
-          puts "waiting for main"
-        end
+      wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
       end
       postings = page.all('span', text: 'Manage')
       puts "there are #{postings.count} postings"
       postings.each_with_index do |posting, idx|
         puts "index:#{idx} of #{postings.count}"
         within("div[role='main']") do
-          while page.has_css?("span[role='progressbar']")
-            sleep 1
-            puts "waiting for main"
-          end
+        wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
         end
         page.all('span', text: 'Manage')[0].click
         page.all('span', text: 'Delete Listing')[0].click
@@ -300,9 +295,9 @@ class Post < Apartment
     selects[6].click
     find('span', text: 'Gas heating').click
     click_button('Next')
-    sleep 1
+    wait_for(css: "button:disabled", message: 'clicking next',  group_name: group_name)
     click_button("Publish")
-    sleep 10
+    wait_for(css: "button:disabled", message: 'posting',  group_name: group_name)
   end
 
   def fb(shared: false, matching: false)
