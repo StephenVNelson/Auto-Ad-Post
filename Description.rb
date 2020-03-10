@@ -33,9 +33,10 @@ module Description
   end
 
   def date_available
+    self.available = Date.today unless self.available > Date.today
     last_7_days = Date.new(available.year, available.month, -7)
     available < last_7_days ?
-      Date::MONTHNAMES[(Date.today + 8).month] :
+      Date::MONTHNAMES[(available + 8).month] :
       Date::MONTHNAMES[available.month]
   end
 
