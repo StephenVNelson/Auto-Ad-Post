@@ -160,17 +160,6 @@ class Post < Apartment
     click_button('Post')
     wait_for(css: "button:disabled", message: 'enabling',  group_name: group_name)
     end
-    sleep 1
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
-      sleep 1
-      puts "#{group_name} wait for button enabling: 1"
-    end
-    find("[data-testid='react-composer-post-button']").click
-    while page.has_css?("[data-testid='react-composer-post-button']:disabled")
-      sleep 1
-      puts "#{group_name} wait for button enabling: 1"
-    end
-  end
 
   def delete_sales_posts(group_name: '')
     click_link('Your Items')
