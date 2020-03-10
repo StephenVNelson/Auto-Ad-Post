@@ -344,7 +344,10 @@ class Post < Apartment
       shared: shared,
       matching: matching
     ) if Post.four_days_ago?
-    post_to_fb_marketplace(shared: false)
+    post_to_fb_marketplace(
+      shared: false,
+      group_name: 'Facebook marketplace'
+    )
     Capybara.ignore_hidden_elements = true
   end
 
