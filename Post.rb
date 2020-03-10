@@ -183,7 +183,7 @@ class Post < Apartment
   end
 
   def create_sales_post(shared: false, matching: false, group_name: '')
-    # binding.pry
+    puts "Posting sales group to #{group_name}. shared: #{shared}, matching:#{matching}"
     click_link("Discussion")
     find("div[role='presentation'] > div > div > div > div > div > label > input").click
     fill_in(
@@ -208,7 +208,6 @@ class Post < Apartment
       group_name: group_name
     )
     end
-  end
 
   def post_to_sales_group(shared: false, matching: false, url: '', group_name: '')
     visit url
@@ -216,7 +215,7 @@ class Post < Apartment
     if @@posts <= 1
       delete_sales_posts(group_name: group_name)
     end
-    create_sales_post(shared: false, matching: false, group_name: group_name)
+    create_sales_post(shared: shared, matching: matching, group_name: group_name)
   end
 
   def post_to_discussion_group(shared: false, matching: false, url: '', group_name: '')
@@ -225,7 +224,7 @@ class Post < Apartment
     if @@posts <= 1
       delete_discussion_posts
     end
-    create_discussion_post(shared: false, matching: false, group_name: group_name)
+    create_discussion_post(shared: shared, matching: matching, group_name: group_name)
   end
 
   def delete_marketplace_post(group_name: '')
