@@ -47,10 +47,12 @@ class Post < Apartment
       fill_in('inputEmailHandle', with: @credentials[:craigslist][:username])
       fill_in('inputPassword', with: @credentials[:craigslist][:password])
       find('#login').click
+      if matching
       page.all("input[value='delete']").each do |delete|
         first("input[value='delete']").click
         click_link("strathmore@gmgapts.com")
       end
+    end
     end
     within(:css, "form.new_posting_thing") do
       click_button('go')
