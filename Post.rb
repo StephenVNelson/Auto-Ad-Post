@@ -137,7 +137,8 @@ class Post < Apartment
         click_button("Delete")
         sleep 3
         if page.has_text?("Did you sell this item?")
-          find("body > div.uiLayer > div > div > div > div > div > div > div > span > button > span > i").click
+          find('span', text: "I'd rather not answer").click
+          click_button('Next')
         end
       end
       find("html").send_keys(:escape)
