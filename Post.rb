@@ -239,10 +239,7 @@ class Post < Apartment
     create_discussion_post(shared: false, matching: false, group_name: group_name)
   end
 
-  def post_to_fb_marketplace(shared: false, matching: false)
-    visit('https://www.facebook.com/marketplace/selling/')
-    find("html").send_keys(:escape)
-    if @@posts <= 1
+  def delete_marketplace_post(group_name: '')
       within("div[role='main']") do
       wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
       end
@@ -256,9 +253,16 @@ class Post < Apartment
         page.all('span', text: 'Manage')[0].click
         page.all('span', text: 'Delete Listing')[0].click
         click_button("Delete")
+    end
         visit('https://www.facebook.com/marketplace/selling/')
         find("html").send_keys(:escape)
       end
+
+  def post_to_fb_marketplace(shared: false, matching: false, group_name: '')
+    visit('https://www.facebook.com/marketplace/selling/')
+    find("html").send_keys(:escape)
+    if @@posts <= 1
+      delete_marketplace_post(group_name: group_name)
     end
     page.find('button', text: "Sell Something").click
     click_link("Homes for Sale or Rent")
