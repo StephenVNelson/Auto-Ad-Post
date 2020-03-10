@@ -1,4 +1,4 @@
-require_relative 'Apartment'
+require_relative 'Prospect'
 require 'webdrivers/chromedriver'
 require 'pry'
 require 'capybara'

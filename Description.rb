@@ -57,8 +57,8 @@ module Description
   end
 
   def roommate_match_group(group)
-    sex_count = group[:people].each_with_object({}) do |person, hash|
-      hash[person[:sex]] = (hash[person[:sex]] || 0) + 1
+    sex_count = group.prospects.each_with_object({}) do |prospect, hash|
+      hash[prospect.sex] = (hash[prospect.sex] || 0) + 1
     end
     sex_count.map do |sex,count|
       pluralize = count > 1 ? "s" : ""
@@ -67,47 +67,49 @@ module Description
   end
 
   def roommate_reqests(group)
-    options = (group[:roommate_high] - group[:roommate_low]) + 1
-    people_count = group[:people].count
+    options = (group.roommate_high - group.roommate_low) + 1
+    people_count = group.prospects.count
     (1..options).map do |n|
       "#{n} roommate#{n>1 ? 's' : ''} at $#{rent/(people_count + n)}/month"
     end.join(' or ')
   end
 
   def roommate_match_dates(group)
-    move_in = Date.parse(group[:move_in_start].to_s).strftime("%b %e")
-    move_out = Date.parse(group[:move_in_end].to_s).strftime("%b %e")
+    move_in = Date.parse(group.move_in_start.to_s).strftime("%b %-e")
+    move_out = Date.parse(group.move_in_end.to_s).strftime("%b %-e")
     "for move-in anytime between #{move_in} and #{move_out}"
   end
 
   def aggregate_roommate_requests(unlinked: false)
-    if roommate_match.count > 1
+    if roommate_groups.count > 1
       pluralize = 's'
-      intro = "I have #{roommate_match.count} group#{pluralize} looking for roommates in a #{apartment_size}. details below:"
+      intro = "I have #{roommate_groups.count} group#{pluralize} looking for roommates in a #{apartment_size}. details below:"
     else
       pluralize = ''
       intro = ''
     end
 
     intro = "ROOMMATE#{pluralize.upcase} WANTED: #{intro}\n"
-    details = roommate_match.map do |group|
+    details = roommate_groups.map do |group|
       # 2 males looking for 1 roommate for a 1 bedroom 1 bathroom apartment.
       "• #{roommate_match_group(group)} looking for #{roommate_reqests(group)} #{roommate_match_dates(group)}"
     end.join("\n") + "\n\n"
     amenities_list = "Amenities include #{amenities}\n\n"
-    included_intro = roommate_match.count < (max_tenants - 1) ? intro : ""
+    included_intro = roommate_groups.count < (max_tenants - 1) ? intro : ""
     included_intro + details + amenities_list + contact(unlinked: unlinked)
   end
 
   def shared_description(unlinked: false, matching: false)
-    if matching == true && roommate_match != nil && roommate_match.count > 0
+    if matching == true && roommate_groups != nil && roommate_groups.count > 0
+      puts "matching: #{matching}, roommate_match: #{roommate_groups.count} "
       aggregate_roommate_requests(unlinked: unlinked)
     else
-      [
-        "**Roommate Match:** #{contact(unlinked: unlinked)}\n#{apartment_size} apartment, very close to #{building.close_to.join(', ')}. Available in #{date_available}. Whole apartment: $#{rent}, #{shared_cost}. Comes with #{amenities}",
-        "#{apartment_size} apartment, #{lease} lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for our roommate match. ($#{rent/max_tenants}/month. #{contact(unlinked: unlinked)}). This is for sharing a #{bedrooms} bedroom apartment with #{max_tenants - 1} others. We will help you find roommates and apply for an apartment",
-        "#{distance_to_UCLA(unlinked: unlinked)} This posting is for sharing a #{apartment_size} apartment. Comes with #{amenities}. Total rent cost is $#{rent}. If you are interested, sign up for the apartment roommate match. #{contact(unlinked: unlinked)}"
-      ].sample
+      description = [
+        "*ROOMMATE MATCH* This post is for a roommate match. details below:\n#{apartment_size} apartment, very close to #{building.close_to.join(', ')}. Available in #{date_available}. Whole apartment: $#{rent}, #{shared_cost}. Comes with #{amenities}\n#{contact(unlinked: unlinked)}",
+        "#{apartment_size} apartment, available #{date_available} for a #{lease} lease. Live affordably in a peaceful complex that won't get in the way of your studies/pursuits. Now accepting applications for our roommate match. ($#{rent/max_tenants}/month. #{contact(unlinked: unlinked)}). This is for sharing a #{bedrooms} bedroom apartment with #{max_tenants - 1} others.",
+        "Share a #{apartment_size} apartment for a #{lease} lease starting in #{date_available}. #{shared_cost}. Comes with #{amenities}. Total rent cost is $#{rent}. If you are interested, sign up for the apartment roommate match. #{contact(unlinked: unlinked)}.\n#{distance_to_UCLA(unlinked: unlinked)} "
+      ]
+      description.sample
     end
   end
 
