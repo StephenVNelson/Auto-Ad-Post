@@ -196,7 +196,7 @@ class Post < Apartment
   def create_sales_post(shared: false, matching: false, group_name: '')
     # binding.pry
     click_link("Discussion")
-    find("div[data-testid='react-composer-root'] > div > div > div > div > label > input").click
+    find("div[role='presentation'] > div > div > div > div > div > label > input").click
     fill_in(
       "What are you selling?",
       with: @apartment.titles(shared: shared)
@@ -270,7 +270,7 @@ class Post < Apartment
     selects = page.all('span', text: 'Select')
     page.all("span", text: "Select")[1].click
     find('span', text: 'Apartment/Condo').click
-    within("div[data-testid='react-composer-root']") do
+    within("div[aria-label='Create a new sale post on Marketplace']") do
       inputs = page.all('input')
       selects = page.all('span', text: 'Select')
       inputs[2].set(@apartment.bedrooms)
