@@ -333,7 +333,7 @@ class Post < Apartment
       shared: shared,
       matching: matching
     ) if Post.four_days_ago?
-    post_to_discussion_group(
+    post_to_sales_group(
       group_name: 'Los Angeles Housing/Sublets/Rentals',
       url: "https://www.facebook.com/groups/614003098879459/",
       shared: shared,
