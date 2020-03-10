@@ -48,11 +48,11 @@ class Post < Apartment
       fill_in('inputPassword', with: @credentials[:craigslist][:password])
       find('#login').click
       if matching
-      page.all("input[value='delete']").each do |delete|
-        first("input[value='delete']").click
-        click_link("strathmore@gmgapts.com")
+        page.all("input[value='delete']").each do |delete|
+          first("input[value='delete']").click
+          click_link("strathmore@gmgapts.com")
+        end
       end
-    end
     end
     within(:css, "form.new_posting_thing") do
       click_button('go')
@@ -155,11 +155,11 @@ class Post < Apartment
     first("[style='outline: none; user-select: text; white-space: pre-wrap; overflow-wrap: break-word;']")
       .set(@apartment.descriptions(shared: shared, matching: matching))
     wait_for(css: "div[role='progressbar']", message: "Photo Load", group_name: group_name)
-      sleep 1
+    sleep 1
     wait_for(css: "button:disabled", message: 'enabling',  group_name: group_name)
     click_button('Post')
     wait_for(css: "button:disabled", message: 'enabling',  group_name: group_name)
-    end
+  end
 
   def delete_sales_posts(group_name: '')
     click_link('Your Items')
@@ -207,7 +207,7 @@ class Post < Apartment
       message: "publishing.", 
       group_name: group_name
     )
-    end
+  end
 
   def post_to_sales_group(shared: false, matching: false, url: '', group_name: '')
     visit url
@@ -228,23 +228,23 @@ class Post < Apartment
   end
 
   def delete_marketplace_post(group_name: '')
-      within("div[role='main']") do
+    within("div[role='main']") do
       wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
-      end
-      postings = page.all('span', text: 'Manage')
-      puts "there are #{postings.count} postings"
-      postings.each_with_index do |posting, idx|
-        puts "index:#{idx} of #{postings.count}"
-        within("div[role='main']") do
-        wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
-        end
-        page.all('span', text: 'Manage')[0].click
-        page.all('span', text: 'Delete Listing')[0].click
-        click_button("Delete")
     end
-        visit('https://www.facebook.com/marketplace/selling/')
-        find("html").send_keys(:escape)
+    postings = page.all('span', text: 'Manage')
+    puts "there are #{postings.count} postings"
+    postings.each_with_index do |posting, idx|
+      puts "index:#{idx} of #{postings.count}"
+      within("div[role='main']") do
+        wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
       end
+      page.all('span', text: 'Manage')[0].click
+      page.all('span', text: 'Delete Listing')[0].click
+      click_button("Delete")
+    end
+    visit('https://www.facebook.com/marketplace/selling/')
+    find("html").send_keys(:escape)
+  end
 
   def post_to_fb_marketplace(shared: false, matching: false, group_name: '')
     visit('https://www.facebook.com/marketplace/selling/')

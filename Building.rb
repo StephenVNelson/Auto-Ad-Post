@@ -1,7 +1,8 @@
 require_relative 'Company'
-# require './DataLoad.rb'
+require_relative 'ApartmentRanking'
 
   class Building < Company
+    include ApartmentRanking
 
     attr_reader :name, :apartments, :amenities, :city, :zip_code, :cross_street_1, :cross_street_2, :close_to, :distance_to_UCLA, :state, :address
     attr_accessor :company
