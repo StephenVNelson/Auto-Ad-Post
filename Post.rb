@@ -355,7 +355,7 @@ end
 
 
 
-Company.new.greystone_apartments.each do |apartment|
+Company.new.greystone_apartments.reverse.each_with_index do |apartment, i|
   Post.new(apartment).post_everywhere(shared: true, matching: true)
 end
 
