@@ -353,7 +353,8 @@ class Post < Apartment
 
 
   def post_everywhere(shared: false, matching: false)
-    # craigslist(shared: false, matching: matching)
+    puts "Unit: #{@apartment.unit}"
+    craigslist(shared: false, matching: false)
     fb(shared: shared, matching: matching)
   end
 
@@ -367,5 +368,6 @@ end
 
 # test descriptions
 # Company.new.greystone_apartments.each do |apartment|
-#  puts apartment.descriptions(shared: true, matching: true, unlinked: true)
+#   puts apartment.unit
+#   puts apartment.descriptions(shared: true, matching: true, unlinked: false)
 # end
