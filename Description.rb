@@ -48,7 +48,7 @@ module Description
 
   def shared_cost
     (1...max_tenants)
-      .map {|t| "#{t} roommates: $#{rent/(t+1)}"}
+      .map {|t| "#{t} roommate#{'s' if t > 1}: $#{rent/(t+1)}"}
       .join(', ')
   end
 
