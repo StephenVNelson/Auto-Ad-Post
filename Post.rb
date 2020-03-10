@@ -182,13 +182,13 @@ class Post < Apartment
           click_button("More")
         end
         all("div > div > ul > li:nth-child(2) > a > span > span > i").last.click
-        # click_link("Delete Post")
-        # binding.pry
         find("div > div > div > div > div > div > button", text: "Delete").click
         wait_for(css: "div[data-testid='delete_post_confirm_dialog']", message: "submitting delete:", group_name: group_name)
+        if page.has_text?("Did you sell this item?")
+          find('span', text: "I'd rather not answer").click
+          click_button('Next')
+          click_link('Your Items')
         end
-        # binding.pry
-        # click_button("Delete")
       end
     end
   end
