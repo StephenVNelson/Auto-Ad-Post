@@ -105,9 +105,9 @@ class Post < Apartment
     sleep 4
   end
 
-  def wait_for(css: '', message: '', group_name: '')
+  def wait_for(css: '', message: '', group_name: '', page_has_css: false)
     i = 0
-    while page.has_css?(css)
+    while page_has_css ? !page.has_css?(css) : page.has_css?(css)
       sleep 1
       print "#{group_name}: #{message}: #{i}\r"
       yield if block_given?
@@ -137,9 +137,9 @@ class Post < Apartment
         wait_for(
           css: "div.uiContextualLayerPositioner.uiLayer:not(.hidden_elem)",
           message: "wait for popup: ",
-          group_name: group_name
+          group_name: group_name, 
+          page_has_css: true
         )
-        #binding.pry# LINE BELOW HAS AN ERROR
         all("#post_menu > div > ul > li").last.click
         click_button("Delete")
         sleep 3
