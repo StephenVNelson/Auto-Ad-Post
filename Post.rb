@@ -116,7 +116,7 @@ class Post < Apartment
     puts ''
   end
 
-  def delete_discussion_posts
+  def delete_discussion_posts(group_name: '')
     click_link("Members")
     until page.has_css?("#groupsMemberSection_self_bio") do
       puts "Wait delete post options"
