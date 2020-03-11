@@ -110,6 +110,7 @@ class Post < Apartment
     while page.has_css?(css)
       sleep 1
       print "#{group_name}: #{message}: #{i}\r"
+      yield if block_given?
       i += 1
     end
     puts ''
