@@ -132,8 +132,14 @@ class Post < Apartment
       total = all("[data-testid='post_chevron_button']").count
       all("[data-testid='post_chevron_button']").each_with_index do |option,i|
         puts "chevron button #{i + 1} of #{total}"
+        sleep 1
         first("#fb_groups_member_bio_dialog > div > div > div > div > div >div a[data-testid='post_chevron_button']").click
-        sleep 3
+        wait_for(
+          css: "div.uiContextualLayerPositioner.uiLayer:not(.hidden_elem)",
+          message: "wait for popup: ",
+          group_name: group_name
+        )
+        #binding.pry# LINE BELOW HAS AN ERROR
         all("#post_menu > div > ul > li").last.click
         click_button("Delete")
         sleep 3
@@ -223,7 +229,7 @@ class Post < Apartment
     visit url
     find("html").send_keys(:escape)
     if @@posts <= 1
-      delete_discussion_posts
+      delete_discussion_posts(group_name: group_name)
     end
     create_discussion_post(shared: shared, matching: matching, group_name: group_name)
   end
