@@ -230,6 +230,7 @@ class Post < Apartment
 
   def delete_marketplace_post(group_name: '')
     within("div[role='main']") do
+      # This is the code that makes everything run so slow
       wait_for(css: "span[role='progressbar']", message: "waiting for main:", group_name: group_name)
     end
     postings = page.all('span', text: 'Manage')
@@ -245,10 +246,22 @@ class Post < Apartment
       within("div.uiContextualLayerPositioner:not(.hidden_elem)") do
         find('span > span', text: 'Delete Listing').click
       end
-      until all("div[data-hover='tooltip']").count == 0
-        puts "Waiting For Delete"
-        click_button("Delete")
-        sleep 1
+      
+      delete_button ="body > div > div > div > div > div > div > div > div > div > span > div > div:nth-child(2) > button > div > div"
+      wait_for(
+        css: delete_button,
+        message: "clicking delete: ",
+        group_name: group_name
+      ) {find(delete_button).click} #click_button("Delete")
+
+      survey_answer = "body > div > div > div > div > div > div > div > div > div > div > div > div > div > div:nth-child(4) > div:nth-child(2) > label > div > span"
+      wait_for(
+        css: survey_answer,
+        message: "answering questionaire: ",
+        group_name: group_name
+      ) do 
+        find(survey_answer).click
+        click_button("Next")
       end
     end
     visit('https://www.facebook.com/marketplace/selling/')
