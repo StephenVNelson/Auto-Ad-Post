@@ -110,7 +110,7 @@ class Post < Apartment
     while page_has_css ? !page.has_css?(css) : page.has_css?(css)
       sleep 1
       print "#{group_name}: #{message}: #{i}\r"
-      yield if block_given?
+      yield(css) if block_given?
       i += 1
     end
     puts ''
@@ -253,20 +253,18 @@ class Post < Apartment
         find('span > span', text: 'Delete Listing').click
       end
       
-      delete_button ="body > div > div > div > div > div > div > div > div > div > span > div > div:nth-child(2) > button > div > div"
       wait_for(
-        css: delete_button,
+        css: "body > div > div > div > div > div > div > div > div > div > span > div > div:nth-child(2) > button > div > div",
         message: "clicking delete: ",
         group_name: group_name
-      ) {find(delete_button).click} #click_button("Delete")
+      ) {|css| find(css).click} #click_button("Delete")
 
-      survey_answer = "body > div > div > div > div > div > div > div > div > div > div > div > div > div > div:nth-child(4) > div:nth-child(2) > label > div > span"
       wait_for(
-        css: survey_answer,
+        css: "body > div > div > div > div > div > div > div > div > div > div > div > div > div > div:nth-child(4) > div:nth-child(2) > label > div > span",
         message: "answering questionaire: ",
         group_name: group_name
-      ) do 
-        find(survey_answer).click
+      ) do |css|
+        find(css).click
         click_button("Next")
       end
     end
