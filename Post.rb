@@ -140,6 +140,10 @@ class Post < Apartment
           group_name: group_name, 
           page_has_css: true
         )
+        # waits for the DOM to recognize the new HTML after the chevron is pressed. 
+        until all("#post_menu").count == (i+1)
+          sleep 1
+        end
         all("#post_menu > div > ul > li").last.click
         click_button("Delete")
         sleep 3
@@ -327,6 +331,7 @@ class Post < Apartment
       fill_in("pass", with: @credentials[:facebook][:password])
       click_button("Log In")
     end
+    sleep 1
     post_to_sales_group(
       group_name: 'LA Housing Sublets And Rentals',
       url: "https://www.facebook.com/groups/151027485336692/",
@@ -373,7 +378,7 @@ class Post < Apartment
 
   def post_everywhere(shared: false, matching: false)
     puts "Unit: #{@apartment.unit}"
-    craigslist(shared: false, matching: false)
+    # craigslist(shared: false, matching: false)
     fb(shared: shared, matching: matching)
   end
 
