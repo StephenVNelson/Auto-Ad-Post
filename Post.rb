@@ -201,6 +201,12 @@ class Post < Apartment
       "What are you selling?",
       with: @apartment.titles(shared: shared)
     )
+    wait_for(
+      css: "div > div > div > div:nth-child(1) > div > div > label > input[placeholder='Price']",
+      message: "price input",
+      group_name: group_name,
+      page_has_css: true
+    ) { find("div > div > div > div:nth-child(1) > div > div > label > input[placeholder='What are you selling?']").click}
     fill_in(
       "Price",
       with: @apartment.adjusted_rent(shared: shared)
@@ -378,7 +384,7 @@ class Post < Apartment
 
   def post_everywhere(shared: false, matching: false)
     puts "Unit: #{@apartment.unit}"
-    # craigslist(shared: false, matching: false)
+    craigslist(shared: false, matching: false)
     fb(shared: shared, matching: matching)
   end
 
