@@ -1,4 +1,5 @@
 require_relative 'Prospect'
+require_relative 'CLI'
 require 'webdrivers/chromedriver'
 require 'pry'
 require 'capybara'
@@ -18,6 +19,7 @@ end
 class Post < Apartment
   include Capybara::DSL
   include Description
+  include CLI
 
   @@posts = 0
 
@@ -27,6 +29,7 @@ class Post < Apartment
     @apartment = apartment
     @credentials = YAML.load(File.read("credentials.yml"))
     @@posts += 1
+    get_options
   end
 
   def self.four_days_ago?
@@ -40,13 +43,14 @@ class Post < Apartment
     old_enough
   end
 
-  def craigslist(shared: false, matching: false)
+  def craigslist
     visit 'https://accounts.craigslist.org/login/home'
     puts "posts: #{@@posts}"
     if @@posts <= 1
       fill_in('inputEmailHandle', with: @credentials[:craigslist][:username])
       fill_in('inputPassword', with: @credentials[:craigslist][:password])
       find('#login').click
+      binding.pry
       if matching
         page.all("input[value='delete']").each do |delete|
           first("input[value='delete']").click
@@ -157,7 +161,7 @@ class Post < Apartment
     click_link("Discussion")
   end
 
-  def create_discussion_post(shared: false, matching: false, group_name: '')
+  def create_discussion_post(group_name: '')
     find(".fbReactComposerMoreButton").click
     first(".fbReactComposerAttachmentSelector_MEDIA").click
     Dir.entries("./Photos/#{@apartment.building.name}").each do |file|
@@ -193,7 +197,7 @@ class Post < Apartment
     end
   end
 
-  def create_sales_post(shared: false, matching: false, group_name: '')
+  def create_sales_post(group_name: '')
     puts "Posting sales group to #{group_name}. shared: #{shared}, matching:#{matching}"
     click_link("Discussion")
     find("div[role='presentation'] > div > div > div > div > div > label > input").click
@@ -226,22 +230,22 @@ class Post < Apartment
     )
   end
 
-  def post_to_sales_group(shared: false, matching: false, url: '', group_name: '')
+  def post_to_sales_group(url: '', group_name: '')
     visit url
     find("html").send_keys(:escape)
     if @@posts <= 1
       delete_sales_posts(group_name: group_name)
     end
-    create_sales_post(shared: shared, matching: matching, group_name: group_name)
+    create_sales_post(group_name: group_name)
   end
 
-  def post_to_discussion_group(shared: false, matching: false, url: '', group_name: '')
+  def post_to_discussion_group(url: '', group_name: '')
     visit url
     find("html").send_keys(:escape)
     if @@posts <= 1
       delete_discussion_posts(group_name: group_name)
     end
-    create_discussion_post(shared: shared, matching: matching, group_name: group_name)
+    create_discussion_post(group_name: group_name)
   end
 
   def delete_marketplace_post(group_name: '')
@@ -282,7 +286,7 @@ class Post < Apartment
     find("html").send_keys(:escape)
   end
 
-  def post_to_fb_marketplace(shared: false, matching: false, group_name: '')
+  def post_to_fb_marketplace
     visit('https://www.facebook.com/marketplace/selling/')
     find("html").send_keys(:escape)
     if @@posts <= 1
@@ -303,13 +307,13 @@ class Post < Apartment
       selects = page.all('span', text: 'Select')
       inputs[2].set(@apartment.bedrooms)
       inputs[3].set(@apartment.bedrooms)
-      until inputs[4].value == @apartment.formatted_rent(shared: shared)
-        inputs[4].set(@apartment.adjusted_rent(shared: shared))
+      until inputs[4].value == @apartment.formatted_rent(shared: marketplace_shared)
+        inputs[4].set(@apartment.adjusted_rent(shared: marketplace_shared))
       end
       inputs[5].set("#{@apartment.building.address}, #{@apartment.building.city} #{@apartment.building.state}")
       sleep 1
       inputs[5].send_keys(:enter)
-      find('textarea').set(@apartment.descriptions(shared: shared, matching: matching))
+      find('textarea').set(@apartment.descriptions(shared: marketplace_shared, matching: marketplace_matching))
       inputs[7].set(@apartment.sqft)
       inputs[8].set(@apartment.available)
       selects[2].click
@@ -329,7 +333,7 @@ class Post < Apartment
     wait_for(css: "button:disabled", message: 'posting',  group_name: group_name)
   end
 
-  def fb(shared: false, matching: false)
+  def fb
     Capybara.ignore_hidden_elements = false
     if @@posts <= 1
       visit "https://www.facebook.com/"
@@ -340,60 +344,50 @@ class Post < Apartment
     sleep 1
     post_to_sales_group(
       group_name: 'LA Housing Sublets And Rentals',
-      url: "https://www.facebook.com/groups/151027485336692/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/151027485336692/"
     )
     post_to_sales_group(
       group_name: 'UCLA Housing And Roommate Search',
-      url: "https://www.facebook.com/groups/1414484008814397/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/1414484008814397/"
     )
     post_to_discussion_group(
       group_name: 'UCLA Off Campus Housing',
-      url: "https://www.facebook.com/groups/1835635240040670/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/1835635240040670/"
     )
     post_to_discussion_group(
       group_name: 'UCLA Housing Rooms Apartments Sublets',
-      url: "https://www.facebook.com/groups/415336998925847/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/415336998925847/"
     ) if Post.four_days_ago?
     post_to_sales_group(
       group_name: 'Los Angeles Housing/Sublets/Rentals',
-      url: "https://www.facebook.com/groups/614003098879459/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/614003098879459/"
     )
     post_to_discussion_group(
       group_name: 'Los Angeles Apartments for Rent',
-      url: "https://www.facebook.com/groups/695435553986189/",
-      shared: shared,
-      matching: matching
+      url: "https://www.facebook.com/groups/695435553986189/"
     ) if Post.four_days_ago?
     post_to_fb_marketplace(
-      shared: false,
       group_name: 'Facebook marketplace'
     )
     Capybara.ignore_hidden_elements = true
   end
 
 
-  def post_everywhere(shared: false, matching: false)
+  def post_everywhere
     puts "Unit: #{@apartment.unit}"
-    craigslist(shared: false, matching: false)
-    fb(shared: shared, matching: matching)
+    # craigslist
+    fb
   end
 
 end
 
-
+# Post.new.start_program
 
 Company.new.greystone_apartments.reverse.each_with_index do |apartment, i|
-  Post.new(apartment).post_everywhere(shared: true, matching: true)
+  # post = Post.new(apartment)
+  # puts "Shared: #{post.shared}"
+  # puts "Matching: #{post.matching}"
+  Post.new(apartment).post_everywhere
 end
 
 # test descriptions
