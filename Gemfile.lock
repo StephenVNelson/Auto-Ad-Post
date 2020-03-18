@@ -12,10 +12,15 @@ GEM
       regexp_parser (~> 1.5)
       xpath (~> 3.2)
     childprocess (3.0.0)
+    equatable (0.6.1)
     mini_mime (1.0.2)
     mini_portile2 (2.4.0)
+    necromancer (0.5.1)
     nokogiri (1.10.9)
       mini_portile2 (~> 2.4.0)
+    pastel (0.7.3)
+      equatable (~> 0.6)
+      tty-color (~> 0.5)
     public_suffix (4.0.3)
     rack (2.2.2)
     rack-test (1.1.0)
@@ -25,10 +30,22 @@ GEM
     selenium-webdriver (3.142.7)
       childprocess (>= 0.5, < 4.0)
       rubyzip (>= 1.2.2)
+    tty-color (0.5.1)
+    tty-cursor (0.7.1)
+    tty-prompt (0.21.0)
+      necromancer (~> 0.5.0)
+      pastel (~> 0.7.0)
+      tty-reader (~> 0.7.0)
+    tty-reader (0.7.0)
+      tty-cursor (~> 0.7)
+      tty-screen (~> 0.7)
+      wisper (~> 2.0.0)
+    tty-screen (0.7.1)
     webdrivers (4.2.0)
       nokogiri (~> 1.6)
       rubyzip (>= 1.3.0)
       selenium-webdriver (>= 3.0, < 4.0)
+    wisper (2.0.1)
     xpath (3.2.0)
       nokogiri (~> 1.8)
 
@@ -38,6 +55,7 @@ PLATFORMS
 DEPENDENCIES
   capybara
   selenium-webdriver
+  tty-prompt
   webdrivers (~> 4.0)
 
 BUNDLED WITH
