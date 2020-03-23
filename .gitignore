@@ -3,3 +3,5 @@ credentials.yml
 apartment_data.yaml
 Photos
 thing.rb
+post_preferences.yml
+post_preferences_default.yml
